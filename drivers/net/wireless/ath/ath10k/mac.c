@@ -289,8 +289,10 @@ static int ath10k_send_key(struct ath10k_vif *arvif,
 		key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
 
 	if (cmd == DISABLE_KEY) {
-		arg.key_cipher = ar->wmi_key_cipher[WMI_CIPHER_NONE];
-		arg.key_data = NULL;
+		/*  Not all hardware supports key deletion operations. so we
+		 *  replace the key with a junk value to invalidate it.
+		 */
+		memset(key->key, 0, key->keylen);
 	}
 
 	return ath10k_wmi_vdev_install_key(arvif->ar, &arg);
