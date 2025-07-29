@@ -230,6 +230,24 @@ fail:
 }
 EXPORT_SYMBOL_GPL(venus_helper_alloc_dpb_bufs);
 
+void venus_helper_prepare_eos_data(struct venus_inst *inst,
+				   struct hfi_frame_data *data)
+{
+	struct venus_core *core = inst->core;
+
+	data->buffer_type = HFI_BUFFER_INPUT;
+	data->flags = HFI_BUFFERFLAG_EOS;
+
+	if (IS_V6(core) && is_fw_rev_or_older(core, 1, 0, 87))
+		return;
+
+	if (IS_V4(core) && is_lite(core) && is_fw_rev_or_older(core, 6, 0, 53))
+		data->alloc_len = 1;
+
+	data->device_addr = 0xdeadb000;
+}
+EXPORT_SYMBOL_GPL(venus_helper_prepare_eos_data);
+
 static int intbufs_set_buffer(struct venus_inst *inst, u32 type)
 {
 	struct venus_core *core = inst->core;
@@ -1715,11 +1733,17 @@ int venus_helper_session_init(struct venus_inst *inst)
 	if (ret)
 		return ret;
 
-	inst->clk_data.vpp_freq = hfi_platform_get_codec_vpp_freq(version, codec,
+	inst->clk_data.vpp_freq = hfi_platform_get_codec_vpp_freq(version,
+								  is_lite(inst->core),
+								  codec,
 								  session_type);
-	inst->clk_data.vsp_freq = hfi_platform_get_codec_vsp_freq(version, codec,
+	inst->clk_data.vsp_freq = hfi_platform_get_codec_vsp_freq(version,
+								  is_lite(inst->core),
+								  codec,
 								  session_type);
-	inst->clk_data.low_power_freq = hfi_platform_get_codec_lp_freq(version, codec,
+	inst->clk_data.low_power_freq = hfi_platform_get_codec_lp_freq(version,
+								       is_lite(inst->core),
+								       codec,
 								       session_type);
 
 	return 0;

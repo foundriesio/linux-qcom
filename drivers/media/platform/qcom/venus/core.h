@@ -28,6 +28,8 @@
 #define VIDC_RESETS_NUM_MAX		2
 #define VIDC_MAX_HIER_CODING_LAYER 6
 
+#define VENUS_MAX_FPS			240
+
 extern int venus_fw_debug;
 
 struct freq_tbl {
@@ -46,6 +48,12 @@ struct bw_tbl {
 	u32 peak;
 	u32 avg_10bit;
 	u32 peak_10bit;
+};
+
+struct venus_min_fw {
+	u32 major;
+	u32 minor;
+	u32 rev;
 };
 
 enum vpu_version {
@@ -90,6 +98,8 @@ struct venus_resources {
 	u32 cp_nonpixel_start;
 	u32 cp_nonpixel_size;
 	const char *fwname;
+	const struct venus_min_fw *enc_minfw;
+	const struct venus_min_fw *dec_minfw;
 	const char *enc_nodename;
 	const char *dec_nodename;
 };
@@ -527,6 +537,11 @@ struct venus_inst {
 #define IS_IRIS1(core)		((core)->res->vpu_version == VPU_VERSION_IRIS1)
 #define IS_IRIS2(core)		((core)->res->vpu_version == VPU_VERSION_IRIS2)
 #define IS_IRIS2_1(core)	((core)->res->vpu_version == VPU_VERSION_IRIS2_1)
+
+static inline bool is_lite(struct venus_core *core)
+{
+	return IS_AR50_LITE(core);
+}
 
 #define ctrl_to_inst(ctrl)	\
 	container_of((ctrl)->handler, struct venus_inst, ctrl_handler)
