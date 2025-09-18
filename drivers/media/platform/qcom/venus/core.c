@@ -457,7 +457,7 @@ static int venus_probe(struct platform_device *pdev)
 					IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
 					"venus", core);
 	if (ret)
-		goto err_hfi_destroy;
+		goto err_core_put;
 
 	venus_assign_register_offsets(core);
 
