@@ -1995,8 +1995,17 @@ static int __maybe_unused qcom_geni_serial_runtime_suspend(struct device *dev)
 	struct uart_port *uport = &port->uport;
 	int ret = 0;
 
-	if (port->dev_data->power_state)
+	if (port->dev_data->power_state) {
 		ret = port->dev_data->power_state(uport, false);
+		if (ret) {
+			if (device_can_wakeup(dev))
+				disable_irq_wake(port->wakeup_irq);
+			return ret;
+		}
+	}
+
+	if (device_can_wakeup(dev))
+		enable_irq_wake(port->wakeup_irq);
 
 	return ret;
 }
@@ -2007,8 +2016,17 @@ static int __maybe_unused qcom_geni_serial_runtime_resume(struct device *dev)
 	struct uart_port *uport = &port->uport;
 	int ret = 0;
 
-	if (port->dev_data->power_state)
+	if (device_can_wakeup(dev))
+		disable_irq_wake(port->wakeup_irq);
+
+	if (port->dev_data->power_state) {
 		ret = port->dev_data->power_state(uport, true);
+		if (ret) {
+			if (device_can_wakeup(dev))
+				enable_irq_wake(port->wakeup_irq);
+			return ret;
+		}
+	}
 
 	return ret;
 }
